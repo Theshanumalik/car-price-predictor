@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        transition: all 0.4s;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-200">
+    <header class="bg-white shadow p-5">
+      <h1 class="px-3 w-4/5 max-w-[500px] mx-auto font-semibold text-xl">
+        Car Price Predictor
+      </h1>
+    </header>
+    <form
+      class="bg-white w-4/5 max-w-[500px] mx-auto p-3 py-5 my-2 shadow flex flex-col gap-2 rounded mt-3"
+      id="form"
+    >
+      <div class="flex flex-col gap-2">
+        <label for="company" class="font-semibold">Car Company</label>
+        <select
+          id="company"
+          class="border border-black rounded p-2 focus:outline-blue-600"
+          required
+        >
+          <option value="">Select Company</option>
+          {% for company in companies %}
+          <option value="{{ company }}">{{ company }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="modal" class="font-semibold">Car Modal</label>
+        <select
+          id="modal"
+          class="border border-black rounded p-2 focus:outline-blue-600"
+          required
+        >
+          <option value="">Select Modal</option>
+          {% for modal in car_models %}
+          <option value="{{ modal }}" class="hidden">{{ modal }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="year" class="font-semibold">Year of purchase</label>
+        <select
+          id="year"
+          class="border border-black rounded p-2 focus:outline-blue-600"
+          required
+        >
+          <option value="">Select Year</option>
+          {% for year in years %}
+          <option value="{{ year }}">{{ year }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="fuel_type" class="font-semibold">Fuel type</label>
+        <select
+          id="fuel_type"
+          class="border border-black rounded p-2 focus:outline-blue-600"
+          required
+        >
+          <option value="">Select Fuel Type</option>
+          {% for fuel in fuel_types %}
+          <option value="{{ fuel }}">{{ fuel }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="modal" class="font-semibold">Kilometers travelled</label>
+        <input
+          type="number"
+          id="km"
+          class="border border-black rounded p-2 focus:outline-blue-600"
+          required
+        />
+      </div>
+
+      <div>
+        <button
+          type="submit"
+          id="submit"
+          class="bg-blue-500 text-white font-semibold p-2 rounded hover:bg-blue-600"
+        >
+          Predict Price
+        </button>
+      </div>
+    </form>
+
+    <div
+      class="bg-white w-4/5 max-w-[500px] mx-auto p-3 my-2 shadow flex flex-col gap-2 rounded"
+    >
+      <h2 class="text-center font-semibold">Predicted Price</h2>
+      <h3
+        class="text-center font-bold text-green-500 text-xl"
+        id="prediction"
+      ></h3>
+    </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      const form = document.getElementById("form");
+      const company = document.getElementById("company");
+      const modal = document.getElementById("modal");
+      const year = document.getElementById("year");
+      const km = document.getElementById("km");
+      const fuel_type = document.getElementById("fuel_type");
+      const submit = document.getElementById("submit");
+
+      company.addEventListener("change", (e) => {
+        const company = e.target.value.toLowerCase();
+        const elems = Array.from(modal.getElementsByTagName("option"));
+
+        let firstActiveElem = true;
+        elems.forEach((node) => {
+          let key = node.value.toLowerCase();
+          if (key.includes(company)) {
+            node.classList.remove("hidden");
+            if (firstActiveElem) {
+              node.setAttribute("selected", true);
+              firstActiveElem = false;
+            }
+          } else {
+            node.classList.add("hidden");
+          }
+        });
+      });
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        submit.disabled = true;
+        submit.innerText = "Predicting...";
+        const formData = new FormData();
+        formData.append("company", company.value);
+        formData.append("modal", modal.value);
+        formData.append("year", year.value);
+        formData.append("km", km.value);
+        formData.append("fuel_type", fuel_type.value);
+
+        fetch("/predict", {
+          method: "POST",
+          body: formData,
+        }).then((res) => {
+          res.json().then((data) => {
+            document.getElementById("prediction").innerText = data;
+          });
+        });
+        submit.disabled = false;
+        submit.innerText = "Predict Price";
+      });
+    </script>
+  </body>
+</html>
